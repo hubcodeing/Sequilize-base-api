@@ -3,8 +3,7 @@ import { db } from "../config";
 const model = db.connection.models;
 import { infoLogger, errorLogger } from "../logger";
 import { _userModel } from "../models";
-import login from "../models/login";
-
+import Sequelize from "sequelize";
 const user = async (req, res) => {
   try {
     infoLogger.info(req.body, req.user.id);
@@ -108,11 +107,26 @@ const note = async (req, res) => {
   }
 };
 
-const uuu = async (req, res) => {
+const all = async (req, res) => {
+  console.log("hello");
   try {
     const notes = await model.login.findAll({
-      include: [{ model: model.notes, as: "userid" }],
+      attributes: {
+        include: [
+          [Sequelize.fn("COUNT", Sequelize.col("userid.id")), "sensorCounts"],
+        ],
+      },
+      include: [
+        {
+          model: model.notes,
+          as: "userid",
+          attributes: [],
+        },
+      ],
+      group: ["login.id"],
     });
+    console.log("uu", notes);
+
     res.status(200).json({ success: true, message: "data get", notes });
   } catch (err) {
     errorLogger.error(err.message);
@@ -127,5 +141,5 @@ export default {
   genius,
   note,
   combine,
-  uuu,
+  all,
 };
