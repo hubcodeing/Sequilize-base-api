@@ -20,7 +20,7 @@ db.connection
 // });
 
 app.use("/", userApi);
-app.use("/", notesApi);
+app.use("/notes", notesApi);
 
 const port = process.env.PORT;
 

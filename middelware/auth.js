@@ -4,6 +4,7 @@ const model = db.connection.models;
 require("dotenv").config();
 const secret = process.env.SECRET;
 const auth = async (req, res, next) => {
+  console.log("hhhhhhh");
   try {
     const token = req.header("Authorization").replace("Bearer", "").trim();
     if (!token) throw new Error("token is not Authorization");

@@ -107,7 +107,8 @@ const note = async (req, res) => {
   }
 };
 
-const uuu = async (req, res) => {
+const all = async (req, res) => {
+  console.log("hello");
   try {
     const notes = await model.login.findAll({
       attributes: {
@@ -124,6 +125,7 @@ const uuu = async (req, res) => {
       ],
       group: ["login.id"],
     });
+    console.log("uu", notes);
 
     res.status(200).json({ success: true, message: "data get", notes });
   } catch (err) {
@@ -139,5 +141,5 @@ export default {
   genius,
   note,
   combine,
-  uuu,
+  all,
 };
