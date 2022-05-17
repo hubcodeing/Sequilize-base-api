@@ -7,7 +7,7 @@ router.post("/user", auth, notesController.user);
 
 router.post("/combine", auth, notesController.combine);
 
-router.get("/", auth, notesController.get);
+// router.get("/", auth, notesController.get);
 
 router.get("/getnotes/:id", auth, notesController.getid);
 
