@@ -65,7 +65,33 @@ const genius = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+const combine = async (req, res) => {
+  try {
+    const id = req.body.id;
+    if (!id) {
+      const data = await model.notes.create({
+        ...req.body,
+        userId: req.user.id,
+      });
+      infoLogger.info(data);
+      res.status(200).json({ success: true, message: "post", data });
+    } else {
+      const { title, discription, age } = req.body;
 
+      const data = await model.notes.update(
+        { title, discription, age },
+        {
+          where: { id },
+        }
+      );
+      infoLogger.info(data);
+      res.status(200).json({ success: true, message: "id update", data });
+    }
+  } catch (err) {
+    errorLogger.error(err.message);
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
 const note = async (req, res) => {
   try {
     const { id } = req.query;
@@ -76,164 +102,6 @@ const note = async (req, res) => {
       message: " data delete successfully",
       data: notes,
     });
-  } catch (err) {
-    errorLogger.error(err.message);
-    res.status(400).json({ success: false, message: err.message });
-  }
-};
-
-const match = async (req, res) => {
-  try {
-    const notes = await model.notes.aggregate([
-      { $match: { _id: mongoose.Types.ObjectId(req.body.id) } },
-    ]);
-    infoLogger.info(notes);
-    res.status(200).json({ success: true, message: "data get", notes });
-  } catch (err) {
-    errorLogger.error(err.message);
-    res.status(400).json({ success: false, message: err.message });
-  }
-};
-const project = async (req, res) => {
-  try {
-    const notes = await model.notes.aggregate([
-      { $project: { _id: 0, discription: 1 } },
-    ]);
-
-    infoLogger.info(notes);
-    res.status(200).json({ success: true, message: "data get", notes });
-  } catch (err) {
-    errorLogger.error(err.message);
-    res.status(400).json({ success: false, message: err.message });
-  }
-};
-
-const addfilds = async (req, res) => {
-  try {
-    const notes = await model.notes.aggregate([{ $addFields: { age: 50 } }]);
-    infoLogger.info(notes);
-    res.status(200).json({ success: true, message: "data get", notes });
-  } catch (err) {
-    errorLogger.error(err.message);
-    res.status(400).json({ success: false, message: err.message });
-  }
-};
-const size = async (req, res) => {
-  try {
-    const notes = await Notes.aggregate([
-      {
-        $project: {
-          age: 1,
-          numberOfAge: {
-            $cond: {
-              if: { $isArray: "$age" },
-              then: { $size: "$age" },
-              else: "NA",
-            },
-          },
-        },
-      },
-    ]);
-    infoLogger.info(notes);
-    res.status(200).json({ success: true, message: "data get", notes });
-  } catch (err) {
-    errorLogger.error(err.message);
-    res.status(400).json({ success: false, message: err.message });
-  }
-};
-
-const look = async (req, res) => {
-  try {
-    const notes = await model.notes.aggregate([
-      {
-        $lookup: {
-          from: "logins",
-          localField: "userId",
-          foreignField: "_id",
-          as: "new_docs",
-        },
-      },
-      {
-        $project: {
-          userId: 1,
-          numberOfuserId: {
-            $cond: {
-              if: { $isArray: "$_id" },
-              then: { $size: "$_id" },
-              else: "NA",
-            },
-          },
-        },
-      },
-    ]);
-    infoLogger.info(notes);
-    res.status(200).json({ success: true, message: "data get", notes });
-  } catch (err) {
-    errorLogger.error(err.message);
-    res.status(400).json({ success: false, message: err.message });
-  }
-};
-const lookup = async (req, res) => {
-  try {
-    const notes = await model.login.aggregate([
-      {
-        $match: {
-          _id: mongoose.Types.ObjectId(req.body.id),
-        },
-      },
-
-      {
-        $lookup: {
-          from: "notes",
-          localField: "_id",
-          foreignField: "userId",
-          as: "NotesData",
-        },
-      },
-      { $addFields: { Total: { $size: { $ifNull: ["$NotesData", []] } } } },
-    ]);
-    infoLogger.info(notes);
-    res.status(200).json({ success: true, message: "data get", notes });
-  } catch (err) {
-    errorLogger.error(err.message);
-    res.status(400).json({ success: false, message: err.message });
-  }
-};
-const combine = async (req, res) => {
-  try {
-    const id = req.body.id;
-    if (!id) {
-      const data = await model.notes.create({
-        ...req.body,
-        userId: req.body.id,
-      });
-      infoLogger.info(data);
-      res.status(200).json({ success: true, message: "post", data });
-    } else {
-      const data = await Notes.findByIdAndUpdate(id, req.body);
-      infoLogger.info(data);
-      res.status(200).json({ success: true, message: "id update", data });
-    }
-  } catch (err) {
-    errorLogger.error(err.message);
-    res.status(400).json({ success: false, message: err.message });
-  }
-};
-const jjj = async (req, res) => {
-  try {
-    let filter = {};
-    if (req.query.title) {
-      filter = { ...filter, title: req.query.title };
-    }
-    if (req.query.discription) {
-      filter = { ...filter, discription: req.query.discription };
-    }
-    if (req.query.age) {
-      filter = { ...filter, age: req.query.age };
-    }
-    const notes = await model.notes.find(filter);
-    infoLogger.info(notes);
-    res.status(200).json({ success: true, message: "title get ", notes });
   } catch (err) {
     errorLogger.error(err.message);
     res.status(400).json({ success: false, message: err.message });
@@ -258,13 +126,6 @@ export default {
   getid,
   genius,
   note,
-  match,
-  project,
-  addfilds,
-  size,
-  look,
-  lookup,
   combine,
-  jjj,
   uuu,
 };
