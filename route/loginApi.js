@@ -17,4 +17,6 @@ router.delete("/", upload, userController.pop);
 
 router.post("/photo", userController.profileurlpath);
 
+router.post("/upload", upload, userController.image);
+
 export default router;

@@ -7,6 +7,9 @@ import { infoLogger, errorLogger } from "../logger";
 import path from "path";
 import { upload } from "../middelware";
 import jwt from "jsonwebtoken";
+import AWS from "aws-sdk";
+import req from "express/lib/request";
+
 const model = db.connection.models;
 require("dotenv").config();
 let __basedir = path.resolve();
@@ -14,6 +17,31 @@ let __basedir = path.resolve();
 const secret = process.env.SECRET;
 const email = process.env.EMAIL;
 const name = process.env.PASS;
+
+const image = async (req, res) => {
+  try {
+    const fileContent = fs.readFileSync(
+      __basedir + "/file/" + req.file.filename
+    );
+    const params = {
+      Bucket: "imageapi",
+      Key: `${Date.now() + path.extname(req.file.filename)}`,
+      Body: fileContent,
+      ACL: "public-read",
+    };
+    console.log(params);
+    const s3 = new AWS.S3({
+      accessKeyId: process.env.ACCESSKEYID,
+      secretAccessKey: process.env.SECRETACCESSKEY,
+    });
+
+    s3.upload(params, function (err, data) {
+      res.json({ success: true });
+    });
+  } catch (error) {
+    res.json({ success: false });
+  }
+};
 
 const register = async (req, res) => {
   try {
@@ -194,4 +222,5 @@ export default {
   update,
   pop,
   profileurlpath,
+  image,
 };

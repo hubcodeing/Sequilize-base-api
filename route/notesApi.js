@@ -1,7 +1,8 @@
 import express from "express";
 const router = express.Router();
-import { notesController } from "../controller";
+import { notesController, userController } from "../controller";
 import { auth } from "../middelware";
+
 router.get("/name", auth, notesController.all);
 
 router.post("/user", auth, notesController.user);
