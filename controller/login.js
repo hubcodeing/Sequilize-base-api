@@ -8,10 +8,14 @@ import path from "path";
 import { upload } from "../middelware";
 import jwt from "jsonwebtoken";
 import AWS from "aws-sdk";
-import req from "express/lib/request";
+import dataGenerator from "dummy-data-generator";
 
 const model = db.connection.models;
 require("dotenv").config();
+const s3 = new AWS.S3({
+  accessKeyId: process.env.ACCESSKEYID,
+  secretAccessKey: process.env.SECRETACCESSKEY,
+});
 let __basedir = path.resolve();
 
 const secret = process.env.SECRET;
@@ -23,23 +27,22 @@ const image = async (req, res) => {
     const fileContent = fs.readFileSync(
       __basedir + "/file/" + req.file.filename
     );
+    console.log("fileContanet", fileContent);
+
     const params = {
-      Bucket: "imageapi",
+      Bucket: process.env.BUCKET,
       Key: `${Date.now() + path.extname(req.file.filename)}`,
       Body: fileContent,
       ACL: "public-read",
     };
-    console.log(params);
-    const s3 = new AWS.S3({
-      accessKeyId: process.env.ACCESSKEYID,
-      secretAccessKey: process.env.SECRETACCESSKEY,
-    });
+    await s3.upload(params).promise();
+    console.log("helllo", params);
 
-    s3.upload(params, function (err, data) {
-      res.json({ success: true });
-    });
+    // s3.upload(params, function (err, data) {
+    res.json({ success: true, message: "photo upload successfully" });
+    // });
   } catch (error) {
-    res.json({ success: false });
+    res.json({ success: false, message: error.message });
   }
 };
 
@@ -213,7 +216,101 @@ const profileurlpath = async (req, res) => {
     }
   });
 };
+const awsprofile = async (req, res) => {
+  try {
+    const fileContent = fs.readFileSync(
+      __basedir + "/file/" + req.file.filename
+    );
+    console.log("fileContanet", fileContent);
 
+    const params = {
+      Bucket: process.env.BUCKET,
+      Key: `${Date.now() + path.extname(req.file.filename)}`,
+      Body: fileContent,
+      ACL: "public-read",
+    };
+    await s3.upload(params).promise();
+    let user = await model.login.create({
+      ...req.body,
+      profile_file: params.Key,
+    });
+    res.json({ success: true, message: "photo upload successfully", user });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+const awsupdate = async (req, res) => {
+  try {
+    let data = {};
+
+    if (req.file == undefined) {
+      data = { ...data, ...req.body };
+    } else {
+      const fileContent = fs.readFileSync(
+        __basedir + "/file/" + req.file.filename
+      );
+
+      const params = {
+        Bucket: process.env.BUCKET,
+        Key: `${Date.now() + path.extname(req.file.filename)}`,
+        Body: fileContent,
+        ACL: "public-read",
+      };
+      await s3.upload(params).promise();
+      data = { ...data, ...req.body, profile_file: params.Key };
+    }
+
+    const { id } = req.params;
+    let user = await model.login.update(data, {
+      where: {
+        id,
+      },
+    });
+    console.log("user", user);
+    res.json({ success: true, message: "photo upload successfully", user });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+const csvgenerate = async (req, res) => {
+  try {
+    const data = dataGenerator({
+      count: 1, // Number of "words" or "paragraph"
+      columnData: {
+        user: {
+          // Required Column Name as string
+          type: "word", // Type of column => "word" || "paragraph"
+          length: 10,
+        },
+        name: {
+          type: "word",
+          length: 10,
+        },
+        // "required-column-name-two": {
+        //   type: "enum",
+        //   values: ["high", "low"],
+        // },
+      },
+      isCSV: false,
+
+      // if true will return output as CSV string
+    });
+
+    model.csv.bulkCreate(data);
+
+    console.log("data", data);
+    res.status(200).json({
+      success: true,
+      message: "csv file generate successfully",
+      data,
+    });
+  } catch (error) {
+    errorLogger.error("error");
+    console.log("error", error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 export default {
   register,
   csvfileUpload,
@@ -223,4 +320,7 @@ export default {
   pop,
   profileurlpath,
   image,
+  awsprofile,
+  awsupdate,
+  csvgenerate,
 };

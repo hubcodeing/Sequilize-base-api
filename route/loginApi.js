@@ -19,4 +19,10 @@ router.post("/photo", userController.profileurlpath);
 
 router.post("/upload", upload, userController.image);
 
+router.post("/aws", upload, userController.awsprofile);
+
+router.post("/generate", userController.csvgenerate);
+
+router.put("/awsupdate/:id", upload, userController.awsupdate);
+
 export default router;

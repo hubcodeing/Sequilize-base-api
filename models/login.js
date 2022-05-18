@@ -6,15 +6,15 @@ export default (connection, Sequelize) => {
     email: {
       type: Sequelize.STRING,
     },
-    // password: {
-    //   type: Sequelize.STRING,
-    // },
-    // phone: {
-    //   type: Sequelize.STRING,
-    // },
-    // profile_file: {
-    //   type: Sequelize.STRING,
-    // },
+    password: {
+      type: Sequelize.STRING,
+    },
+    phone: {
+      type: Sequelize.STRING,
+    },
+    profile_file: {
+      type: Sequelize.STRING,
+    },
     // profile_url: {
     //   type: Sequelize.STRING,
     // },

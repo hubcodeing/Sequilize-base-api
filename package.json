@@ -13,8 +13,11 @@
   "dependencies": {
     "aws-sdk": "^2.1136.0",
     "body-parser": "^1.20.0",
+    "csv": "^6.0.5",
+    "csv-generate": "^4.0.4",
     "csv-parser": "^3.0.0",
     "dotenv": "^16.0.1",
+    "dummy-data-generator": "^1.7.3",
     "express": "^4.18.1",
     "generate-password": "^1.7.0",
     "joi": "^17.6.0",
